@@ -14,7 +14,8 @@ describe('JsonValidator', () => {
             ],
             descriptionAreas: [
               { x: 100, y: 300, width: 200, height: 100 }
-            ]
+            ],
+            descriptionText: 'ヨモギ\nキク科\n多年生草本。'
           }
         ]
       };
@@ -47,7 +48,8 @@ describe('JsonValidator', () => {
           {
             name: '',
             photoAreas: [],
-            descriptionAreas: []
+            descriptionAreas: [],
+            descriptionText: ''
           }
         ]
       };
@@ -64,7 +66,8 @@ describe('JsonValidator', () => {
             photoAreas: [
               { x: -10, y: 100, width: 200, height: 150 }
             ],
-            descriptionAreas: []
+            descriptionAreas: [],
+            descriptionText: 'テスト植物の説明'
           }
         ]
       };
@@ -81,7 +84,8 @@ describe('JsonValidator', () => {
             photoAreas: [
               { x: 100, y: 100, width: 0, height: 150 }
             ],
-            descriptionAreas: []
+            descriptionAreas: [],
+            descriptionText: 'テスト植物の説明'
           }
         ]
       };
@@ -96,7 +100,8 @@ describe('JsonValidator', () => {
           {
             name: 'unknown',
             photoAreas: [],
-            descriptionAreas: []
+            descriptionAreas: [],
+            descriptionText: ''
           }
         ]
       };
@@ -115,7 +120,8 @@ describe('JsonValidator', () => {
             ],
             descriptionAreas: [
               { x: 100, y: 300, width: 200, height: 100 }
-            ]
+            ],
+            descriptionText: 'ヨモギ\nキク科\n多年生草本。'
           },
           {
             name: 'ハコベ',
@@ -124,7 +130,8 @@ describe('JsonValidator', () => {
             ],
             descriptionAreas: [
               { x: 400, y: 300, width: 200, height: 100 }
-            ]
+            ],
+            descriptionText: 'ハコベ\nナデシコ科\n一年草。'
           }
         ]
       };

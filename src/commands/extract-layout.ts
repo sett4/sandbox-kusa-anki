@@ -1,12 +1,18 @@
 import { Command } from "commander";
-import { readdirSync, writeFileSync } from "fs";
-import { join, extname, basename } from "path";
+import { readdirSync, statSync, writeFileSync } from "fs";
+import { join, extname, basename, dirname } from "path";
 import { config } from "dotenv";
 import { logger } from "../utils/logger";
 import { GeminiClient } from "../utils/gemini-client";
 import { JsonValidator } from "../utils/json-validator";
 import { RateLimiter } from "../utils/rate-limiter";
-import { ExtractLayoutOptions, ProcessingResult } from "../types/layout-types";
+import { PatternMatcher } from "../utils/pattern-matcher";
+import { ImageSplitter } from "../utils/image-splitter";
+import {
+  ExtractLayoutOptions,
+  ProcessingResult,
+  LayoutResult,
+} from "../types/layout-types";
 
 config(); // .env ファイルを読み込み
 
@@ -53,9 +59,14 @@ async function extractLayout(options: ExtractLayoutOptions): Promise<void> {
   // クライアント初期化
   const geminiClient = new GeminiClient(apiKey);
   const rateLimiter = new RateLimiter(options.rateLimit);
+  const patternMatcher = new PatternMatcher();
+  const imageSplitter = new ImageSplitter();
 
   // PNGファイルの取得
   const pngFiles = getPngFiles(options.pngDirectory);
+  if (!statSync(options.pngDirectory).isDirectory()) {
+    options.pngDirectory = dirname(options.pngDirectory);
+  }
   logger.info(`Found ${pngFiles.length} PNG files`);
 
   if (pngFiles.length === 0) {
@@ -70,8 +81,11 @@ async function extractLayout(options: ExtractLayoutOptions): Promise<void> {
   let errorCount = 0;
 
   for (const pngFile of pngFiles) {
-    const pngPath = join(options.pngDirectory, pngFile);
-    const layoutPath = getLayoutFilePath(options.pngDirectory, pngFile);
+    const pngPath = join(pngFile);
+    const layoutPath = getLayoutFilePath(
+      options.pngDirectory,
+      basename(pngFile)
+    );
 
     try {
       // 既存ファイルのチェック
@@ -89,9 +103,15 @@ async function extractLayout(options: ExtractLayoutOptions): Promise<void> {
       // レート制限の適用
       await rateLimiter.waitIfNeeded();
 
-      // レイアウト解析の実行
+      // 新しい3段階解析の実行
       const result = await processWithRetry(
-        () => geminiClient.analyzeLayout(pngPath),
+        () =>
+          analyzeLayoutNew(
+            pngPath,
+            patternMatcher,
+            imageSplitter,
+            geminiClient
+          ),
         options.retryCount || 3,
         pngFile
       );
@@ -140,12 +160,33 @@ async function extractLayout(options: ExtractLayoutOptions): Promise<void> {
   }
 }
 
-function getPngFiles(directory: string): string[] {
-  try {
-    const files = readdirSync(directory);
-    return files.filter((file) => extname(file).toLowerCase() === ".png");
-  } catch (error) {
-    throw new Error(`Failed to read directory ${directory}: ${error}`);
+export function filterPngFiles(files: string[]): string[] {
+  return files.filter((file) => {
+    const ext = extname(file).toLowerCase();
+    const name = basename(file, ext);
+    return ext === ".png" && !name.endsWith("_layout");
+  });
+}
+
+function getPngFiles(inputPath: string): string[] {
+  const stat = statSync(inputPath);
+  if (stat.isFile()) {
+    // 単一ファイルの場合
+    if (extname(inputPath).toLowerCase() !== ".png") {
+      throw new Error(`Input file is not a PNG: ${inputPath}`);
+    }
+    return [inputPath];
+  } else if (stat.isDirectory()) {
+    // ディレクトリの場合
+    try {
+      const files = readdirSync(inputPath);
+      const filteredFiles = filterPngFiles(files);
+      return filteredFiles.map((file) => join(inputPath, file));
+    } catch (error) {
+      throw new Error(`Failed to read directory ${inputPath}: ${error}`);
+    }
+  } else {
+    throw new Error(`Input path is neither file nor directory: ${inputPath}`);
   }
 }
 
@@ -178,4 +219,87 @@ async function processWithRetry<T>(
   }
 
   throw lastError!;
+}
+
+async function analyzeLayoutNew(
+  imagePath: string,
+  patternMatcher: PatternMatcher,
+  imageSplitter: ImageSplitter,
+  geminiClient: GeminiClient
+): Promise<LayoutResult> {
+  try {
+    logger.info(`Starting new layout analysis for: ${imagePath}`);
+
+    // 1. パターンマッチング
+    const pattern = await patternMatcher.matchPattern(imagePath);
+
+    if (!pattern) {
+      logger.warn("Pattern matching failed, returning empty result");
+      const filename = imagePath.split("/").pop() || imagePath;
+      return {
+        page: filename,
+        plants: [],
+      };
+    }
+
+    logger.info(`Pattern matched: ${pattern.code}`);
+
+    // 2. 画像分割
+    const splitResults = await imageSplitter.splitByPattern(imagePath, pattern);
+    logger.info(`Image split into ${splitResults.length} sections`);
+
+    // 3. 分割結果をファイルに保存
+    await Promise.all(
+      splitResults.map(async (splitResult, index) => {
+        const outputDir = dirname(imagePath);
+        const baseFileName = basename(imagePath, extname(imagePath));
+        await imageSplitter.saveBufferAsFile(
+          splitResult.photoBuffer,
+          join(outputDir, `${baseFileName}_${index}_photo.png`)
+        );
+        await imageSplitter.saveBufferAsFile(
+          splitResult.descriptionBuffer,
+          join(outputDir, `${baseFileName}_${index}_description.png`)
+        );
+      })
+    );
+
+    // 4. OCR処理
+    const plants = [];
+    for (const splitResult of splitResults) {
+      try {
+        const ocrResult = await geminiClient.performOCR(
+          splitResult.descriptionBuffer
+        );
+        plants.push({
+          name: ocrResult.plantName || "unknown",
+          photoAreas: [splitResult.photoArea],
+          descriptionAreas: [splitResult.descriptionArea],
+          descriptionText: ocrResult.fullText,
+        });
+      } catch (error) {
+        logger.error(`OCR failed for a section: ${error}`);
+        plants.push({
+          name: "unknown",
+          photoAreas: [splitResult.photoArea],
+          descriptionAreas: [splitResult.descriptionArea],
+          descriptionText: "",
+        });
+      }
+    }
+
+    const filename = imagePath.split("/").pop() || imagePath;
+    return {
+      page: filename,
+      plants,
+    };
+  } catch (error) {
+    logger.error(`New layout analysis failed: ${error}`);
+    logger.info("Returning empty result due to analysis failure");
+    const filename = imagePath.split("/").pop() || imagePath;
+    return {
+      page: filename,
+      plants: [],
+    };
+  }
 }

@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { logger } from './logger';
-import { LayoutResult } from '../types/layout-types';
+import { LayoutResult, OCRResult } from '../types/layout-types';
 
 interface GeminiResponse {
   candidates: {
@@ -23,9 +23,27 @@ export class GeminiClient {
     this.apiKey = apiKey;
   }
 
+  async performOCR(imageBuffer: Buffer): Promise<OCRResult> {
+    try {
+      logger.info('Starting OCR processing');
+      
+      const imageBase64 = imageBuffer.toString('base64');
+      const prompt = this.createOCRPrompt();
+      
+      const response = await this.callGeminiAPI(imageBase64, prompt);
+      const ocrResult = this.parseOCRResponse(response);
+      
+      logger.info('OCR processing completed');
+      return ocrResult;
+    } catch (error) {
+      logger.error('Failed to perform OCR:', error);
+      throw error;
+    }
+  }
+
   async analyzeLayout(imagePath: string): Promise<LayoutResult> {
     try {
-      logger.info(`Starting layout analysis for: ${imagePath}`);
+      logger.info(`Starting fallback layout analysis for: ${imagePath}`);
       
       const imageBase64 = this.imageToBase64(imagePath);
       const prompt = this.createPrompt();
@@ -33,7 +51,7 @@ export class GeminiClient {
       const response = await this.callGeminiAPI(imageBase64, prompt);
       const layoutResult = this.parseResponse(response, imagePath);
       
-      logger.info(`Layout analysis completed for: ${imagePath}`);
+      logger.info(`Fallback layout analysis completed for: ${imagePath}`);
       return layoutResult;
     } catch (error) {
       logger.error(`Failed to analyze layout for ${imagePath}:`, error);
@@ -48,6 +66,19 @@ export class GeminiClient {
     } catch (error) {
       throw new Error(`Failed to read image file: ${imagePath}`);
     }
+  }
+
+  private createOCRPrompt(): string {
+    return `
+この画像に含まれるテキストを抽出してください。
+最初の行は植物名として扱います。
+
+出力形式：
+植物名: [最初の行のテキスト]
+説明文: [全体のテキスト]
+
+テキストが読み取れない場合は "unknown" としてください。
+`;
   }
 
   private createPrompt(): string {
@@ -68,7 +99,8 @@ export class GeminiClient {
     {
       "name": "植物名",
       "photoAreas": [{"x": 数値, "y": 数値, "width": 数値, "height": 数値}],
-      "descriptionAreas": [{"x": 数値, "y": 数値, "width": 数値, "height": 数値}]
+      "descriptionAreas": [{"x": 数値, "y": 数値, "width": 数値, "height": 数値}],
+      "descriptionText": "説明文"
     }
   ]
 }
@@ -104,26 +136,94 @@ JSON以外の文字は出力しないでください。
       }
     };
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    });
+    return await this.callWithRetry(url, requestBody);
+  }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json() as GeminiResponse;
+  private async callWithRetry(url: string, requestBody: object, attempt: number = 1): Promise<string> {
+    const maxRetries = 3;
     
-    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content.parts[0].text) {
-      throw new Error('No valid response from Gemini API');
-    }
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
 
-    return data.candidates[0].content.parts[0].text;
+      if (response.status === 429 && attempt <= maxRetries) {
+        // レート制限の場合、30秒 + エクスポネンシャルバックオフで待機
+        const baseDelay = 30000; // 30秒
+        const exponentialDelay = Math.pow(2, attempt - 1) * 1000; // 1秒, 2秒, 4秒...
+        const totalDelay = baseDelay + exponentialDelay;
+        
+        logger.warn(`Rate limit hit (429), waiting ${totalDelay}ms before retry ${attempt}/${maxRetries}`);
+        
+        await new Promise(resolve => setTimeout(resolve, totalDelay));
+        return await this.callWithRetry(url, requestBody, attempt + 1);
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json() as GeminiResponse;
+      
+      if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content.parts[0].text) {
+        throw new Error('No valid response from Gemini API');
+      }
+
+      return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+      if (attempt <= maxRetries && error instanceof Error && error.message.includes('fetch')) {
+        // ネットワークエラーの場合もリトライ
+        const delay = Math.pow(2, attempt - 1) * 2000; // 2秒, 4秒, 8秒
+        logger.warn(`Network error, retrying in ${delay}ms (attempt ${attempt}/${maxRetries})`);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return await this.callWithRetry(url, requestBody, attempt + 1);
+      }
+      
+      throw error;
+    }
+  }
+
+  private parseOCRResponse(responseText: string): OCRResult {
+    try {
+      const lines = responseText.trim().split('\n');
+      let plantName = 'unknown';
+      let fullText = '';
+
+      for (const line of lines) {
+        if (line.startsWith('植物名:')) {
+          plantName = line.replace('植物名:', '').trim();
+        } else if (line.startsWith('説明文:')) {
+          fullText = line.replace('説明文:', '').trim();
+        }
+      }
+
+      // 植物名が見つからない場合、最初の非空行を植物名とする
+      if (plantName === 'unknown' && fullText) {
+        const firstLine = fullText.split('\n')[0].trim();
+        if (firstLine) {
+          plantName = firstLine;
+        }
+      }
+
+      return {
+        plantName: plantName || 'unknown',
+        fullText: fullText || ''
+      };
+    } catch (error) {
+      logger.error('Failed to parse OCR response:', error);
+      logger.debug('Raw OCR response:', responseText);
+      
+      return {
+        plantName: 'unknown',
+        fullText: ''
+      };
+    }
   }
 
   private parseResponse(responseText: string, imagePath: string): LayoutResult {

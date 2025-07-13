@@ -1,10 +1,10 @@
-import { logger } from './logger';
+import { logger } from "./logger";
 
 export class RateLimiter {
   private lastCallTime = 0;
   private minInterval: number;
 
-  constructor(minIntervalMs: number = 1000) {
+  constructor(minIntervalMs: number = 6000) {
     this.minInterval = minIntervalMs;
   }
 
@@ -22,7 +22,7 @@ export class RateLimiter {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   setInterval(intervalMs: number): void {

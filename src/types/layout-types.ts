@@ -9,6 +9,7 @@ export interface Plant {
   name: string;
   photoAreas: Area[];
   descriptionAreas: Area[];
+  descriptionText: string;
 }
 
 export interface LayoutResult {
@@ -40,5 +41,29 @@ export interface ImageProcessingResult {
   filename: string;
   outputPath?: string;
   error?: string;
-  errorType?: 'json_missing' | 'json_invalid' | 'image_error' | 'processing_error';
+  errorType?:
+    | "json_missing"
+    | "json_invalid"
+    | "image_error"
+    | "processing_error";
+}
+
+export interface LayoutPattern {
+  code: string;
+  boxes: Area[];
+  photoSection: { x: number; width: number };
+  descriptionSection: { x: number; width: number };
+}
+
+export interface SplitResult {
+  box: Area;
+  photoArea: Area;
+  descriptionArea: Area;
+  photoBuffer: Buffer;
+  descriptionBuffer: Buffer;
+}
+
+export interface OCRResult {
+  fullText: string;
+  plantName: string;
 }

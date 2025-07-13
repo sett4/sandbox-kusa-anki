@@ -107,7 +107,7 @@ export class ImageProcessor {
     ctx.lineWidth = this.options.lineWidth;
     ctx.globalAlpha = 0.8;
 
-    ctx.strokeRect(area.x * 2, area.y * 2, area.width * 2, area.height * 2);
+    ctx.strokeRect(area.x, area.y, area.width, area.height);
 
     ctx.restore();
   }

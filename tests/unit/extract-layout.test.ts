@@ -24,7 +24,8 @@ describe('extract-layout', () => {
           {
             name: 'ヨモギ',
             photoAreas: [{ x: 100, y: 100, width: 200, height: 150 }],
-            descriptionAreas: [{ x: 100, y: 300, width: 200, height: 100 }]
+            descriptionAreas: [{ x: 100, y: 300, width: 200, height: 100 }],
+            descriptionText: 'ヨモギ\nキク科\n薬用植物として古くから利用されている'
           }
         ]
       };
@@ -39,7 +40,8 @@ describe('extract-layout', () => {
           {
             name: 'unknown',
             photoAreas: [],
-            descriptionAreas: []
+            descriptionAreas: [],
+            descriptionText: ''
           }
         ]
       };
@@ -54,7 +56,8 @@ describe('extract-layout', () => {
           {
             name: 'ヨモギ',
             photoAreas: [{ x: 100, y: 100, width: 200, height: 150 }],
-            descriptionAreas: [{ x: 100, y: 300, width: 200, height: 100 }]
+            descriptionAreas: [{ x: 100, y: 300, width: 200, height: 100 }],
+            descriptionText: 'ヨモギ\nキク科\n薬用植物として古くから利用されている'
           },
           {
             name: 'ハコベ',
@@ -62,7 +65,8 @@ describe('extract-layout', () => {
               { x: 400, y: 100, width: 150, height: 120 },
               { x: 400, y: 250, width: 150, height: 120 }
             ],
-            descriptionAreas: [{ x: 400, y: 400, width: 200, height: 80 }]
+            descriptionAreas: [{ x: 400, y: 400, width: 200, height: 80 }],
+            descriptionText: 'ハコベ\nナデシコ科\n春の七草の一つ'
           }
         ]
       };
