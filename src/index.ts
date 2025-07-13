@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import { createExtractPageCommand } from './commands/extract-page';
+import { createExtractLayoutCommand } from './commands/extract-layout';
 import { logger } from './utils/logger';
 
 const program = new Command();
@@ -14,8 +15,10 @@ program
 // extract-pageコマンドを追加
 program.addCommand(createExtractPageCommand());
 
+// extract-layoutコマンドを追加
+program.addCommand(createExtractLayoutCommand());
+
 // TODO: 他のコマンドも追加予定
-// program.addCommand(createExtractLayoutCommand());
 // program.addCommand(createBuildDeckCommand());
 
 // エラーハンドリング
