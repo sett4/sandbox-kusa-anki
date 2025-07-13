@@ -10,15 +10,22 @@
     "build": "tsc",
     "lint": "eslint src/**/*.ts",
     "test": "jest",
+    "test:watch": "JEST_WATCH_MODE=true jest --watch --verbose",
     "dev": "ts-node src/index.ts",
     "extract-page": "ts-node src/index.ts extract-page",
-    "extract-layout": "ts-node src/index.ts extract-layout", 
+    "extract-layout": "ts-node src/index.ts extract-layout",
     "build-deck": "ts-node src/index.ts build-deck"
   },
-  "keywords": ["kindle", "anki", "automation", "typescript"],
+  "keywords": [
+    "kindle",
+    "anki",
+    "automation",
+    "typescript"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",

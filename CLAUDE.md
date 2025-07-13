@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-kusa-ankiは Kindle Books から Anki の Deck を作成する個人用ツールです。3つの主要機能で構成されています：
+kusa-anki は Kindle Books から Anki の Deck を作成する個人用ツールです。3 つの主要機能で構成されています：
 
 1. **extract-page**: Kindle Cloud Reader を自動でページ送りし、各ページを PNG として保存
-2. **extract-layout**: PNG ファイルをレイアウト解析し、草木の領域を抽出  
+2. **extract-layout**: PNG ファイルをレイアウト解析し、草木の領域を抽出
 3. **build-deck**: 抽出結果をもとに Anki の Deck を作成
 
 ## 開発コマンド
@@ -51,3 +51,5 @@ src/
 - Kindle Cloud Reader の操作は右矢印キーでのページ遷移を想定
 - ファイル名形式: `${asin}_${pageNum}.png`
 - PRD は `docs/prd/` ディレクトリに格納
+- git コミットメッセージは conventional commits を用いる
+- t-wada の TDD に従い、RED, GREEN, REFACTOR のサイクルを用いる
