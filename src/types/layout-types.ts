@@ -28,3 +28,17 @@ export interface ProcessingResult {
   error?: string;
   skipped?: boolean;
 }
+
+export interface GenerateLayoutImageOptions {
+  input: string; // file or directory path
+  layoutDir?: string; // layout JSON files directory (default: same as input)
+  outputDir?: string; // output directory (default: same as input)
+}
+
+export interface ImageProcessingResult {
+  success: boolean;
+  filename: string;
+  outputPath?: string;
+  error?: string;
+  errorType?: 'json_missing' | 'json_invalid' | 'image_error' | 'processing_error';
+}
