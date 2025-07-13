@@ -1,6 +1,7 @@
 export interface ExtractPageOptions {
   cdpUrl: string;
   destDir: string;
+  maxPages?: number;
 }
 
 export interface ExtractLayoutOptions {
