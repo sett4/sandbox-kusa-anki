@@ -1,11 +1,9 @@
 import { Command } from "commander";
 import { readdirSync, statSync, writeFileSync } from "fs";
 import { join, extname, basename, dirname } from "path";
-import { config } from "dotenv";
 import { logger } from "../utils/logger";
-import { GeminiClient } from "../utils/gemini-client";
+import { YomitokuClient } from "../utils/yomitoku-client";
 import { JsonValidator } from "../utils/json-validator";
-import { RateLimiter } from "../utils/rate-limiter";
 import { PatternMatcher } from "../utils/pattern-matcher";
 import { ImageSplitter } from "../utils/image-splitter";
 import {
@@ -14,7 +12,6 @@ import {
   LayoutResult,
 } from "../types/layout-types";
 
-config(); // .env ファイルを読み込み
 
 export function createExtractLayoutCommand(): Command {
   const command = new Command("extract-layout");
@@ -50,15 +47,8 @@ async function extractLayout(options: ExtractLayoutOptions): Promise<void> {
   logger.info(`Retry count: ${options.retryCount}`);
   logger.info(`Rate limit: ${options.rateLimit}ms`);
 
-  // Gemini API キーの確認
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY environment variable is required");
-  }
-
   // クライアント初期化
-  const geminiClient = new GeminiClient(apiKey);
-  const rateLimiter = new RateLimiter(options.rateLimit);
+  const yomitokuClient = new YomitokuClient();
   const patternMatcher = new PatternMatcher();
   const imageSplitter = new ImageSplitter();
 
@@ -100,8 +90,6 @@ async function extractLayout(options: ExtractLayoutOptions): Promise<void> {
         continue;
       }
 
-      // レート制限の適用
-      await rateLimiter.waitIfNeeded();
 
       // 新しい3段階解析の実行
       const result = await processWithRetry(
@@ -110,7 +98,7 @@ async function extractLayout(options: ExtractLayoutOptions): Promise<void> {
             pngPath,
             patternMatcher,
             imageSplitter,
-            geminiClient
+            yomitokuClient
           ),
         options.retryCount || 3,
         pngFile
@@ -225,7 +213,7 @@ async function analyzeLayoutNew(
   imagePath: string,
   patternMatcher: PatternMatcher,
   imageSplitter: ImageSplitter,
-  geminiClient: GeminiClient
+  yomitokuClient: YomitokuClient
 ): Promise<LayoutResult> {
   try {
     logger.info(`Starting new layout analysis for: ${imagePath}`);
@@ -268,7 +256,7 @@ async function analyzeLayoutNew(
     const plants = [];
     for (const splitResult of splitResults) {
       try {
-        const ocrResult = await geminiClient.performOCR(
+        const ocrResult = await yomitokuClient.performOCR(
           splitResult.descriptionBuffer
         );
         plants.push({

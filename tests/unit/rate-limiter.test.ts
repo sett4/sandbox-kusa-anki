@@ -1,9 +1,9 @@
 import { RateLimiter } from '../../src/utils/rate-limiter';
 
 describe('RateLimiter', () => {
-  test('初期設定で1秒間隔が設定される', () => {
+  test('初期設定で6秒間隔が設定される', () => {
     const rateLimiter = new RateLimiter();
-    expect(rateLimiter.getInterval()).toBe(1000);
+    expect(rateLimiter.getInterval()).toBe(6000);
   });
 
   test('カスタム間隔を設定できる', () => {
