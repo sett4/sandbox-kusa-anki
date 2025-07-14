@@ -15,7 +15,7 @@
     "extract-page": "ts-node src/index.ts extract-page",
     "extract-layout": "ts-node src/index.ts extract-layout",
     "generate-layout-image": "ts-node src/index.ts generate-layout-image",
-    "build-deck": "ts-node src/index.ts build-deck"
+    "generate-apkg": "ts-node src/index.ts generate-apkg"
   },
   "keywords": [
     "kindle",
@@ -26,6 +26,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -38,9 +39,11 @@
   },
   "dependencies": {
     "@types/sharp": "^0.31.1",
+    "anki-apkg-export": "^4.0.3",
     "canvas": "^3.1.2",
     "commander": "^11.0.0",
     "dotenv": "^16.0.0",
+    "file-saver": "^2.0.5",
     "playwright": "^1.40.0",
     "sharp": "^0.34.3",
     "winston": "^3.11.0"
