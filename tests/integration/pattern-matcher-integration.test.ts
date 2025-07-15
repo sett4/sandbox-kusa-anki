@@ -2,7 +2,7 @@ import { PatternMatcher } from "../../src/utils/pattern-matcher";
 import { ImageProcessor } from "../../src/utils/image-processor";
 import { Area } from "../../src/types/layout-types";
 import { join } from "path";
-import { mkdirSync } from "fs";
+import { mkdirSync, existsSync } from "fs";
 
 /**
  * パターンマッチング統合テスト
@@ -51,6 +51,12 @@ describe("PatternMatcher Integration Tests", () => {
 
   test("B09Z2SQWZK_0022.png pattern matching with visualization", async () => {
     const imagePath = join(samplePagesDir, "B09Z2SQWZK_0022.png");
+    
+    // ファイルが存在しない場合はテストをスキップ
+    if (!existsSync(imagePath)) {
+      console.log(`Skipping test: ${imagePath} not found (proprietary data)`);
+      return;
+    }
 
     const result = await patternMatcher.matchPattern(imagePath);
 
@@ -74,6 +80,12 @@ describe("PatternMatcher Integration Tests", () => {
 
   test("B09Z2SQWZK_0023.png pattern matching with visualization", async () => {
     const imagePath = join(samplePagesDir, "B09Z2SQWZK_0023.png");
+    
+    // ファイルが存在しない場合はテストをスキップ
+    if (!existsSync(imagePath)) {
+      console.log(`Skipping test: ${imagePath} not found (proprietary data)`);
+      return;
+    }
 
     const result = await patternMatcher.matchPattern(imagePath);
 
@@ -97,6 +109,12 @@ describe("PatternMatcher Integration Tests", () => {
 
   test("B09Z2SQWZK_0099.png pattern matching with visualization", async () => {
     const imagePath = join(samplePagesDir, "B09Z2SQWZK_0099.png");
+    
+    // ファイルが存在しない場合はテストをスキップ
+    if (!existsSync(imagePath)) {
+      console.log(`Skipping test: ${imagePath} not found (proprietary data)`);
+      return;
+    }
 
     const result = await patternMatcher.matchPattern(imagePath);
 
