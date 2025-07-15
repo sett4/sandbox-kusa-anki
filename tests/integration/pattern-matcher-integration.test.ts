@@ -30,7 +30,7 @@ describe("PatternMatcher Integration Tests", () => {
   let patternMatcher: PatternMatcher;
   let imageProcessor: ImageProcessor;
   const samplePagesDir = join(__dirname, "../assets/sample-pages");
-  const outputDir = join(__dirname, "../../output/pattern-visualization");
+  const outputDir = join(__dirname, "../../out/pattern-visualization");
 
   beforeEach(() => {
     patternMatcher = new PatternMatcher();
@@ -40,7 +40,7 @@ describe("PatternMatcher Integration Tests", () => {
       lineWidth: 3,
     });
     jest.clearAllMocks();
-    
+
     // 出力ディレクトリを作成
     try {
       mkdirSync(outputDir, { recursive: true });
@@ -51,7 +51,7 @@ describe("PatternMatcher Integration Tests", () => {
 
   test("B09Z2SQWZK_0022.png pattern matching with visualization", async () => {
     const imagePath = join(samplePagesDir, "B09Z2SQWZK_0022.png");
-    
+
     // ファイルが存在しない場合はテストをスキップ
     if (!existsSync(imagePath)) {
       console.log(`Skipping test: ${imagePath} not found (proprietary data)`);
@@ -61,26 +61,37 @@ describe("PatternMatcher Integration Tests", () => {
     const result = await patternMatcher.matchPattern(imagePath);
 
     expect(result).not.toBeNull();
-    
+
     // 実際の結果を可視化
     if (result) {
-      await generateVisualization(imagePath, result, `B09Z2SQWZK_0022_actual_${result.code}.png`);
+      await generateVisualization(
+        imagePath,
+        result,
+        `B09Z2SQWZK_0022_actual_${result.code}.png`
+      );
     }
-    
+
     // 期待値のパターンも可視化
-    const expectedPattern = { code: "EVEN_3ROWS", boxes: [
-      { x: 288, y: 83, width: 1096, height: 577 },
-      { x: 288, y: 678, width: 1096, height: 569 },
-      { x: 288, y: 1267, width: 1096, height: 569 },
-    ]};
-    await generateVisualization(imagePath, expectedPattern, "B09Z2SQWZK_0022_expected_EVEN_3ROWS.png");
-    
+    const expectedPattern = {
+      code: "EVEN_3ROWS",
+      boxes: [
+        { x: 288, y: 83, width: 1096, height: 577 },
+        { x: 288, y: 678, width: 1096, height: 569 },
+        { x: 288, y: 1267, width: 1096, height: 569 },
+      ],
+    };
+    await generateVisualization(
+      imagePath,
+      expectedPattern,
+      "B09Z2SQWZK_0022_expected_EVEN_3ROWS.png"
+    );
+
     console.log(`Expected: EVEN_3ROWS, Actual: ${result?.code}`);
   }, 10000); // 10秒のタイムアウト
 
   test("B09Z2SQWZK_0023.png pattern matching with visualization", async () => {
     const imagePath = join(samplePagesDir, "B09Z2SQWZK_0023.png");
-    
+
     // ファイルが存在しない場合はテストをスキップ
     if (!existsSync(imagePath)) {
       console.log(`Skipping test: ${imagePath} not found (proprietary data)`);
@@ -90,26 +101,37 @@ describe("PatternMatcher Integration Tests", () => {
     const result = await patternMatcher.matchPattern(imagePath);
 
     expect(result).not.toBeNull();
-    
+
     // 実際の結果を可視化
     if (result) {
-      await generateVisualization(imagePath, result, `B09Z2SQWZK_0023_actual_${result.code}.png`);
+      await generateVisualization(
+        imagePath,
+        result,
+        `B09Z2SQWZK_0023_actual_${result.code}.png`
+      );
     }
-    
+
     // 期待値のパターンも可視化
-    const expectedPattern = { code: "ODD_3ROWS", boxes: [
-      { x: 225, y: 119, width: 1110, height: 567 },
-      { x: 225, y: 702, width: 1110, height: 577 },
-      { x: 225, y: 1298, width: 1110, height: 573 },
-    ]};
-    await generateVisualization(imagePath, expectedPattern, "B09Z2SQWZK_0023_expected_ODD_3ROWS.png");
-    
+    const expectedPattern = {
+      code: "ODD_3ROWS",
+      boxes: [
+        { x: 225, y: 119, width: 1110, height: 567 },
+        { x: 225, y: 702, width: 1110, height: 577 },
+        { x: 225, y: 1298, width: 1110, height: 573 },
+      ],
+    };
+    await generateVisualization(
+      imagePath,
+      expectedPattern,
+      "B09Z2SQWZK_0023_expected_ODD_3ROWS.png"
+    );
+
     console.log(`Expected: ODD_3ROWS, Actual: ${result?.code}`);
   }, 10000); // 10秒のタイムアウト
 
   test("B09Z2SQWZK_0099.png pattern matching with visualization", async () => {
     const imagePath = join(samplePagesDir, "B09Z2SQWZK_0099.png");
-    
+
     // ファイルが存在しない場合はテストをスキップ
     if (!existsSync(imagePath)) {
       console.log(`Skipping test: ${imagePath} not found (proprietary data)`);
@@ -119,32 +141,47 @@ describe("PatternMatcher Integration Tests", () => {
     const result = await patternMatcher.matchPattern(imagePath);
 
     expect(result).not.toBeNull();
-    
+
     // 実際の結果を可視化
     if (result) {
-      await generateVisualization(imagePath, result, `B09Z2SQWZK_0099_actual_${result.code}.png`);
+      await generateVisualization(
+        imagePath,
+        result,
+        `B09Z2SQWZK_0099_actual_${result.code}.png`
+      );
     }
-    
+
     // 期待値のパターンも可視化
-    const expectedPattern = { code: "ODD_2ROWS", boxes: [
-      { x: 215, y: 90, width: 1096, height: 843 },
-      { x: 215, y: 979, width: 1096, height: 843 },
-    ]};
-    await generateVisualization(imagePath, expectedPattern, "B09Z2SQWZK_0099_expected_ODD_2ROWS.png");
-    
+    const expectedPattern = {
+      code: "ODD_2ROWS",
+      boxes: [
+        { x: 215, y: 90, width: 1096, height: 843 },
+        { x: 215, y: 979, width: 1096, height: 843 },
+      ],
+    };
+    await generateVisualization(
+      imagePath,
+      expectedPattern,
+      "B09Z2SQWZK_0099_expected_ODD_2ROWS.png"
+    );
+
     console.log(`Expected: ODD_2ROWS, Actual: ${result?.code}`);
   }, 10000); // 10秒のタイムアウト
 
   // 可視化ヘルパー関数
-  const generateVisualization = async (imagePath: string, pattern: { code: string; boxes: Area[] }, outputFileName: string) => {
+  const generateVisualization = async (
+    imagePath: string,
+    pattern: { code: string; boxes: Area[] },
+    outputFileName: string
+  ) => {
     const mockLayoutResult = {
       page: outputFileName,
       plants: pattern.boxes.map((box: Area, index: number) => ({
         name: `Box_${index + 1}`,
         photoAreas: [box],
         descriptionAreas: [],
-        descriptionText: `Pattern: ${pattern.code}, Box: ${index + 1}`
-      }))
+        descriptionText: `Pattern: ${pattern.code}, Box: ${index + 1}`,
+      })),
     };
 
     const outputPath = join(outputDir, outputFileName);
