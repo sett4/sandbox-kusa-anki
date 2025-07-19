@@ -33,8 +33,10 @@ npm run build-deck [PNG_DIRECTORY] [LAYOUT_FILE]         # Anki Deck 作成
 - **言語**: TypeScript
 - **CLI**: Commander.js
 - **ブラウザ自動化**: Playwright (Chrome DevTools Protocol 経由)
+- **OCR**: yomitoku (ローカルOCRコマンド)
+- **画像処理**: Sharp (エッジ検出、パターンマッチング)
 - **ログ**: winston
-- **テスト**: Playwright でのヘッドレスブラウザテスト
+- **テスト**: Jest でのユニット・統合テスト
 
 ## アーキテクチャ
 
@@ -53,3 +55,20 @@ src/
 - PRD は `docs/prd/` ディレクトリに格納
 - git コミットメッセージは conventional commits を用いる
 - t-wada の TDD に従い、RED, GREEN, REFACTOR のサイクルを用いる
+
+## 依存要件
+
+### yomitoku コマンド
+
+extract-layout コマンドを使用するには、システムに `yomitoku` コマンドがインストールされている必要があります。
+
+**インストール方法:**
+- GitHub: https://github.com/jamsinclair/yomitoku
+- パッケージマネージャーまたは手動インストールが必要
+
+**使用方法:**
+```bash
+yomitoku <INPUT_FILE> -f md -o <OUTPUT_DIR>
+```
+
+yomitokuが利用できない場合、extract-layoutコマンドは適切なエラーメッセージを表示します。

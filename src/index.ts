@@ -2,6 +2,9 @@
 
 import { Command } from 'commander';
 import { createExtractPageCommand } from './commands/extract-page';
+import { createExtractLayoutCommand } from './commands/extract-layout';
+import { createGenerateLayoutImageCommand } from './commands/generate-layout-image';
+import { createGenerateApkgCommand } from './commands/generate-apkg';
 import { logger } from './utils/logger';
 
 const program = new Command();
@@ -14,9 +17,14 @@ program
 // extract-pageコマンドを追加
 program.addCommand(createExtractPageCommand());
 
-// TODO: 他のコマンドも追加予定
-// program.addCommand(createExtractLayoutCommand());
-// program.addCommand(createBuildDeckCommand());
+// extract-layoutコマンドを追加
+program.addCommand(createExtractLayoutCommand());
+
+// generate-layout-imageコマンドを追加
+program.addCommand(createGenerateLayoutImageCommand());
+
+// generate-apkgコマンドを追加
+program.addCommand(createGenerateApkgCommand());
 
 // エラーハンドリング
 program.exitOverride();

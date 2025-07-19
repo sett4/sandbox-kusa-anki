@@ -21,8 +21,9 @@
 
 ### 推奨機能（Should Have）
 
-- [ ] 進捗表示
+- [x] 進捗表示 (winston logger使用)
 - [ ] エラー時の自動リトライ
+- [x] 最大ページ数制限機能
 
 ### 任意機能（Could Have）
 
@@ -35,18 +36,24 @@
 
 - cdpUrl: 接続先 Chrome DevTools Protocol の URL
 - destDir: ファイル出力先ディレクトリ
+- --max-pages: 抽出する最大ページ数 (デフォルト: 10)
 
 ### 出力
 
 - $destDir に保存した PNG ファイル群
+- ファイル名形式: `${asin}_${pageNum}.png` (pageNumは0埋め4桁)
 
 ### 処理フロー
 
 1. $cdpUrl の Chrome に接続
 2. Chrome のアクティブなタブが Kindle Cloud Reader であることを確認( https://read.amazon.co.jp/?asin=$asin )
-3. Chrome のスクリーンショットを $destDir に保存。ファイル名は ${asin}_${pageNum}.png
-4. 次ページへの遷移。これは右矢印キーを押せば次ページへ遷移すると想定している。
-5. 最後のページまで 2-4 を繰り返す
+3. ASINを解析し、開始ページ番号を取得
+4. 出力ディレクトリ $destDir を作成
+5. 各ページに対して以下を実行:
+   - fullPageスクリーンショットを $destDir に保存 (ファイル名: `${asin}_${pageNum}.png`)
+   - 右矢印キーで次ページへ遷移
+   - ページ読み込み完了を待機 (domcontentloaded + 追加の4秒待機)
+6. 最大ページ数に達するまで 5 を繰り返す
 
 ## 4. 実装詳細
 
